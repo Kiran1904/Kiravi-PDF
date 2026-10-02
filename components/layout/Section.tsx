@@ -17,7 +17,11 @@ export function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section aria-labelledby={`${id}-heading`} className={cn("py-12 sm:py-16", className)}>
+    <section
+      id={id}
+      aria-labelledby={`${id}-heading`}
+      className={cn("scroll-mt-20 py-12 sm:py-16", className)}
+    >
       <Container>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>

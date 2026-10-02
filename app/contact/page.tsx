@@ -23,7 +23,8 @@ export default function ContactPage() {
       <p>
         <a
           href={`mailto:${site.email}`}
-          className={cn(buttonVariants({ size: "lg" }), "h-11 px-5 text-base no-underline")}
+          data-slot="button"
+          className={cn(buttonVariants({ size: "lg" }), "h-11 px-5 text-base")}
         >
           <Mail className="size-4" />
           {site.email}

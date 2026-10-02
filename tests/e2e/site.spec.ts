@@ -30,6 +30,12 @@ test("homepage renders, searches and never loads the PDF libraries", async ({ pa
     ).toBe(true);
   }
 
+  await search.press("Escape");
+  await expect(page.getByRole("listbox", { name: "Search results" })).toBeHidden();
+  await page.getByRole("link", { name: "See all tools" }).click();
+  await expect(page).toHaveURL(/#pdf-tools$/);
+  await expect(page.locator("#pdf-tools")).toBeInViewport();
+
   await search.fill("merge");
   await search.press("Enter");
   await expect(page).toHaveURL(/\/pdf\/merge-pdf$/);
@@ -66,6 +72,11 @@ test("tool pages carry unique metadata and structured data", async ({ page }) =>
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/pdf\/compress-pdf$/);
   await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", /Compress PDF/);
   await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /\/og\/compress-pdf$/);
+  const card = await page.request.get("/og/compress-pdf");
+  expect(card.status()).toBe(200);
+  expect(card.headers()["content-type"]).toBe("image/png");
+  expect((await card.body()).length).toBeGreaterThan(10_000);
 
   const schemas = await page.locator('script[type="application/ld+json"]').allTextContents();
   const types = schemas.flatMap((json) => {
@@ -79,6 +90,16 @@ test("tool pages carry unique metadata and structured data", async ({ page }) =>
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("PDF Tools");
   await expect(page.getByRole("heading", { name: "What is Compress PDF?" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Related tools" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Why did my PDF barely get smaller?" }).click();
+  await expect(page.getByText("Because there was little to remove", { exact: false })).toBeVisible();
+});
+
+test("the structured-data search action really works", async ({ page }) => {
+  await page.goto("/?q=rotate");
+  const options = page.getByRole("listbox", { name: "Search results" }).getByRole("option");
+  await expect(options).toHaveCount(2);
+  await expect(page.getByRole("combobox", { name: "Search tools" }).first()).toHaveValue("rotate");
 });
 
 test("sitemap and robots are generated from the registry", async ({ page }) => {
@@ -116,4 +137,24 @@ test("header search opens in a sheet and navigates", async ({ page }) => {
   await search.fill("resize");
   await search.press("Enter");
   await expect(page).toHaveURL(/\/image\/resize-image$/);
+});
+
+test("contact email button is readable, not brand-on-brand", async ({ page }) => {
+  await page.goto("/contact");
+  const link = page.getByRole("link", { name: /hello@kiravipdf\.com/ });
+  await expect(link).toBeVisible();
+  await expect(link).toHaveAttribute("href", "mailto:hello@kiravipdf.com");
+  const style = await link.evaluate((element) => {
+    const computed = getComputedStyle(element);
+    return {
+      color: computed.color,
+      background: computed.backgroundColor,
+      decoration: computed.textDecorationLine,
+    };
+  });
+  expect(style.color).not.toBe(style.background);
+  expect(style.decoration).toBe("none");
+  // Inline prose links keep their brand styling.
+  const prose = page.getByRole("link", { name: "privacy page" });
+  expect(await prose.evaluate((element) => getComputedStyle(element).textDecorationLine)).toBe("underline");
 });

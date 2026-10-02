@@ -103,7 +103,7 @@ export default function HomePage() {
           </p>
 
           <div className="mx-auto mt-8 max-w-xl">
-            <ToolSearch index={index} suggestions={SUGGESTIONS} />
+            <ToolSearch index={index} suggestions={SUGGESTIONS} seedFromUrl />
           </div>
         </Container>
       </section>

@@ -6,6 +6,7 @@ export const metadata = pageMetadata({
   description:
     "Ten free PDF tools that run in your browser: merge, split, compress, rotate, delete and extract pages, and convert PDFs to JPG, PNG or text.",
   path: "/pdf",
+  image: "/og/pdf",
 });
 
 export default function PdfToolsPage() {

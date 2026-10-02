@@ -6,6 +6,7 @@ export const metadata = pageMetadata({
   description:
     "Nine free image tools that run in your browser: compress, resize, crop, rotate, convert between JPG, PNG and WebP, build PDFs and strip EXIF data.",
   path: "/image",
+  image: "/og/image",
 });
 
 export default function ImageToolsPage() {

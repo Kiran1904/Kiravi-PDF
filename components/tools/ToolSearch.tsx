@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Search, X } from "lucide-react";
 
 import { ToolIcon } from "@/components/tools/ToolIcon";
@@ -12,10 +12,15 @@ import { cn } from "@/lib/utils";
 
 const MAX_RESULTS = 8;
 
+const subscribeNever = () => () => {};
+const readUrlQuery = () => new URLSearchParams(window.location.search).get("q") ?? "";
+const readServerQuery = () => "";
+
 export function ToolSearch({
   index,
   suggestions = [],
   autoFocus = false,
+  seedFromUrl = false,
   placeholder = "What do you want to do?",
   className,
 }: {
@@ -23,15 +28,22 @@ export function ToolSearch({
   /** Slugs shown as quick picks when the field is empty */
   suggestions?: string[];
   autoFocus?: boolean;
+  /** Start with `?q=` from the URL — backs the WebSite SearchAction in structured data */
+  seedFromUrl?: boolean;
   placeholder?: string;
   className?: string;
 }) {
   const router = useRouter();
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [query, setQuery] = useState("");
+  const urlQuery = useSyncExternalStore(subscribeNever, readUrlQuery, readServerQuery);
+  const [typed, setTyped] = useState<string | null>(null);
   const [active, setActive] = useState(0);
   const [open, setOpen] = useState(false);
+  // Until the user types, a seeded query comes from the URL and its results are shown.
+  const seeded = seedFromUrl && typed === null && urlQuery !== "";
+  const query = typed ?? (seedFromUrl ? urlQuery : "");
+  const setQuery = (value: string) => setTyped(value);
 
   const results = useMemo(() => searchTools(index, query).slice(0, MAX_RESULTS), [index, query]);
   const quickPicks = useMemo(
@@ -46,14 +58,19 @@ export function ToolSearch({
     return () => window.clearTimeout(timer);
   }, [query, results.length]);
 
-  function go(tool: ToolIndexEntry) {
+  function close() {
+    if (seeded) setTyped(query);
     setOpen(false);
+  }
+
+  function go(tool: ToolIndexEntry) {
+    close();
     router.push(`/${tool.category}/${tool.slug}`);
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape") {
-      setOpen(false);
+      close();
       return;
     }
     if (!results.length) return;
@@ -72,7 +89,7 @@ export function ToolSearch({
     }
   }
 
-  const showResults = open && Boolean(query.trim());
+  const showResults = (open || seeded) && Boolean(query.trim());
   const hasResults = results.length > 0;
 
   return (
@@ -101,7 +118,7 @@ export function ToolSearch({
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          onBlur={() => window.setTimeout(() => setOpen(false), 120)}
+          onBlur={() => window.setTimeout(close, 120)}
           onKeyDown={onKeyDown}
           className={cn(
             "bg-card h-14 w-full rounded-xl border pr-12 pl-12 text-base shadow-sm",

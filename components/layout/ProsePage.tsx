@@ -28,7 +28,7 @@ export function ProsePage({
           "[&_li]:text-muted-foreground",
           "[&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5",
           "[&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5",
-          "[&_a]:text-brand [&_a]:underline [&_a]:underline-offset-2",
+          "[&_a:not([data-slot=button])]:text-brand [&_a:not([data-slot=button])]:underline [&_a:not([data-slot=button])]:underline-offset-2",
           "[&_strong]:text-foreground",
         ].join(" ")}
       >

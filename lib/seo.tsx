@@ -7,15 +7,19 @@ export function pageMetadata({
   title,
   description,
   path,
+  image = "/og/home",
   noIndex = false,
 }: {
   title: string;
   description: string;
   path: string;
+  /** Path of the link-preview card, see app/og/[slug]/route.tsx */
+  image?: string;
   noIndex?: boolean;
 }): Metadata {
   const url = `${site.url}${path}`;
   const fullTitle = path === "/" ? title : `${title} | ${site.name}`;
+  const images = [{ url: image, width: 1200, height: 630, alt: fullTitle }];
 
   return {
     title,
@@ -28,12 +32,14 @@ export function pageMetadata({
       title: fullTitle,
       description,
       url,
+      images,
     },
     twitter: {
       card: "summary_large_image",
       site: site.twitter,
       title: fullTitle,
       description,
+      images,
     },
   };
 }
@@ -43,6 +49,7 @@ export function toolMetadata(tool: Tool): Metadata {
     title: tool.seoTitle,
     description: tool.metaDescription,
     path: toolHref(tool),
+    image: `/og/${tool.slug}`,
   });
 }
 
