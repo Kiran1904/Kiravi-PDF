@@ -37,6 +37,7 @@ export const metadata: Metadata = {
     images: ["/og/home"],
   },
   robots: { index: true, follow: true },
+  verification: { google: "op5whND7wCZfYa7RG0BIOyWxehtktLB-82suEINUQsA" },
 };
 
 export const viewport: Viewport = {
